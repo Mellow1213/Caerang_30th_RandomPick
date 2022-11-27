@@ -12,6 +12,14 @@ public class RandomPick : MonoBehaviour
     public TextMeshProUGUI GoodTxt;
     public string[] StudentNumber;
 
+    public AudioClip spinStart;
+    public GameObject spin;
+    public AudioClip spinEnd;
+    public AudioClip goods;
+
+    AudioSource _audioSource;
+
+
     int cnt = 0;
     string number = "";
 
@@ -25,6 +33,7 @@ public class RandomPick : MonoBehaviour
 
     private void Awake()
     {
+        _audioSource = GetComponent<AudioSource>();
         List<Dictionary<string, object>> goods = CSVReader.Read("Goods");
         isPickedGoods = Enumerable.Repeat<bool>(false, goods.Count).ToArray<bool>();
         Debug.Log("isPicked.Length = " + isPickedGoods.Length);
@@ -60,8 +69,8 @@ public class RandomPick : MonoBehaviour
                 flag = false;
                 break;
             }
-            
-            for(int i =0; i<data.Count; i++)
+
+            for (int i = 0; i < data.Count; i++)
             {
                 if (!isPickedGoods[i])
                 {
@@ -115,23 +124,42 @@ public class RandomPick : MonoBehaviour
         Debug.Log("±¬¡Ó : " + temp);
         return data[temp]["numbers"].ToString();
     }
+
+    float timeSet = 0.5f;
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        Debug.Log( "doTimer = "+doTimer);
+        Debug.Log("cnt = "+cnt);
+        Debug.Log("timer = " +timer);
+
+        if (Input.GetKeyDown(KeyCode.Space) && !doTimer)
         {
-            PickRandomNumber();
+            doTimer = true;
         }
         if (doTimer)
         {
             timer += Time.deltaTime;
         }
+        if (timer >= timeSet)
+        {
+            timer = 0f;
+            PickRandomNumber();
+        }
+        if (cnt == 6)
+            timeSet = 1f;
+        else if (cnt == 7)
+            timeSet = 2f;
+        else
+            timeSet = 0.5f;
     }
 
     void PickRandomNumber()
     {
         if (cnt == 0)
         {
+            spin.SetActive(true);
+            _audioSource.PlayOneShot(spinStart);
             number = RandomNumbers();
             Debug.Log("ªÃ¿∫ «–π¯" + number);
         }
@@ -142,18 +170,35 @@ public class RandomPick : MonoBehaviour
             RandomNumberTxt[cnt].GetComponent<DoScramble>().setString(number[cnt]);
             cnt++;
         }
-        else if(cnt == 8)
+        else if (cnt == 8)
         {
-            GoodTxt.DOText("[¥Á√∑ ªÛ«∞] : " + RandomGoods(), 2f);
+            spin.SetActive(false);
+            _audioSource.PlayOneShot(spinEnd);
+            doTimer = false;
             cnt++;
         }
-        else
+        else if (cnt == 9)
         {
+            _audioSource.PlayOneShot(goods);
+            //GoodTxt.DOText("" + RandomGoods(), 2f);
+            GoodTxt.text = ""+RandomGoods();
+            doTimer = false;
+            cnt++;
+        }
+        else if(cnt == 10)
+        {
+            doTimer = false;
             for (int i = 0; i < RandomNumberTxt.Length; i++)
                 RandomNumberTxt[i].GetComponent<DoScramble>().setDoScramble(true);
 
+            number = ""; GoodTxt.text = "???";
+            cnt++;
+            spin.SetActive(true);
+
+        }
+        else
+        {
             cnt = 0;
-            number = ""; GoodTxt.text = "[¥Á√∑ ªÛ«∞] ";
         }
     }
 }

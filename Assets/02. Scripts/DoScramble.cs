@@ -29,12 +29,20 @@ public class DoScramble : MonoBehaviour
         _text.text = num.ToString();
     }
 
-    
+    float timer = 0f;
     void Scramble()
     {
         if (doScramble)
         {
-            _text.text = Random.Range(0, 10).ToString();
+            timer += Time.deltaTime;
+            if (timer > 0.01f)
+            {
+                timer = 0f;
+                _text.text = Random.Range(0, 10).ToString();
+            }
+        }
+        else
+        {
         }
     }
 
